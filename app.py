@@ -52,6 +52,7 @@ st.markdown(
 
 [data-testid="stToolbar"] a[href*="github"] {
     display: none !important;
+    visibility: hidden !important;
 }
 
 [data-testid="stToolbar"] {
