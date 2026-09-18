@@ -2,7 +2,6 @@
 data/
 *.csv
 
-
 # Ignore Python environment and cache
 __pycache__/
 *.pyc
