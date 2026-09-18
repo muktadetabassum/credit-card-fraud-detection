@@ -681,11 +681,6 @@ def load_all_models():
         "hybrid_config.pkl",
     )
 
-    results_path = os.path.join(
-        MODEL_DIR,
-        "model_results.csv",
-    )
-
     # --------------------------------------------------------
     # SCALER
     # --------------------------------------------------------
@@ -785,26 +780,6 @@ def load_all_models():
             )
 
     # --------------------------------------------------------
-    # RESULTS
-    # --------------------------------------------------------
-
-    results_df = None
-
-    if os.path.exists(results_path):
-
-        try:
-
-            results_df = pd.read_csv(
-                results_path
-            )
-
-        except Exception as e:
-
-            errors.append(
-                f"Results file: {str(e)}"
-            )
-
-    # --------------------------------------------------------
     # SHAP EXPLAINER
     # --------------------------------------------------------
 
@@ -830,7 +805,6 @@ def load_all_models():
             None,
             scaler,
             explainer,
-            results_df,
             "\n".join(errors),
         )
 
@@ -838,7 +812,6 @@ def load_all_models():
         models,
         scaler,
         explainer,
-        results_df,
         "\n".join(errors) if errors else None,
     )
 
@@ -847,7 +820,7 @@ def load_all_models():
 # LOAD
 # ============================================================
 
-models, scaler, explainer, results_df, model_error = (
+models, scaler, explainer, model_error = (
     load_all_models()
 )
 
@@ -1247,57 +1220,6 @@ def section_header(
 
 def display_model_performance():
 
-    if results_df is None:
-
-        st.warning(
-            "model_results.csv was not found."
-        )
-
-        return
-
-    metric_columns = [
-        "Precision",
-        "Recall",
-        "F1-Score",
-    ]
-
-    available = [
-        col
-        for col in metric_columns
-        if col in results_df.columns
-    ]
-
-    if not available:
-
-        st.warning(
-            "No evaluation metrics found."
-        )
-
-        return
-
-    # --------------------------------------------------------
-    # HYBRID METRICS ONLY
-    # --------------------------------------------------------
-
-    hybrid_rows = results_df[
-        results_df["Model"]
-        .astype(str)
-        .str.contains(
-            "Hybrid",
-            case=False,
-            na=False,
-        )
-    ]
-
-    if hybrid_rows.empty:
-
-        st.warning(
-            "Hybrid model metrics were not found."
-        )
-
-        return
-
-    row = hybrid_rows.iloc[0]
 
     cols = st.columns(3)
 

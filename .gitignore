@@ -1,6 +1,6 @@
 # Ignore raw data files
-data/data/creditcard.csv
-*.zip
+data/
+*.csv
 
 # Ignore Python environment and cache
 __pycache__/
