@@ -56,6 +56,10 @@ st.markdown(
     display: none !important;
 }
 
+[data-testid="appCreatorAvatar"]{
+    display: none! important;
+}
+
 #MainMenu {
     visibility: hidden !important;
 }
