@@ -9,7 +9,6 @@ import plotly.graph_objects as go
 
 from pytorch_tabnet.tab_model import TabNetClassifier
 
-
 # ============================================================
 # PAGE CONFIG
 # ============================================================
@@ -595,6 +594,35 @@ button[data-testid="stSidebarCollapsedControl"]:hover {
     gap: 12px;
 }
 
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .header-title {
+        font-size: 24px !important;
+    }
+    
+    .header-icon {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        font-size: 18px !important;
+        margin-top: -35px
+    }
+    
+    .system-status{
+        margin-left: 65px;
+    }
+    
+    .main .block-container {
+        padding: 1rem !important;
+    }
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -605,16 +633,12 @@ button[data-testid="stSidebarCollapsedControl"]:hover {
 # HTML HELPER
 # ============================================================
 
+
 def render_html(content):
 
-    lines = [
-        line.strip()
-        for line in content.strip().splitlines()
-    ]
+    lines = [line.strip() for line in content.strip().splitlines()]
 
-    normalized = "\n".join(
-        line for line in lines if line
-    )
+    normalized = "\n".join(line for line in lines if line)
 
     st.markdown(
         normalized,
@@ -628,21 +652,12 @@ def render_html(content):
 
 FEATURE_EXPLANATIONS = {
     "Time": "Transaction Time Pattern",
-
-    **{
-        f"V{i}": f"PCA Component {i} Risk Signal"
-        for i in range(1, 29)
-    },
-
+    **{f"V{i}": f"PCA Component {i} Risk Signal" for i in range(1, 29)},
     "Amount": "Transaction Amount Magnitude",
 }
 
 
-FEATURE_NAMES = (
-    ["Time"]
-    + [f"V{i}" for i in range(1, 29)]
-    + ["Amount"]
-)
+FEATURE_NAMES = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]
 
 
 # ============================================================
@@ -664,6 +679,7 @@ MODEL_FILES = {
 # LOAD ALL MODELS
 # ============================================================
 
+
 @st.cache_resource
 def load_all_models():
 
@@ -674,8 +690,7 @@ def load_all_models():
         MODEL_DIR,
         "scaler.pkl",
     )
-    
-    
+
     config_path = os.path.join(
         MODEL_DIR,
         "hybrid_config.pkl",
@@ -710,9 +725,7 @@ def load_all_models():
 
         if not os.path.exists(path):
 
-            errors.append(
-                f"{model_name}: {path} not found"
-            )
+            errors.append(f"{model_name}: {path} not found")
 
             continue
 
@@ -722,9 +735,7 @@ def load_all_models():
 
         except Exception as e:
 
-            errors.append(
-                f"{model_name}: {str(e)}"
-            )
+            errors.append(f"{model_name}: {str(e)}")
 
     # --------------------------------------------------------
     # TABNET
@@ -741,23 +752,17 @@ def load_all_models():
 
             tabnet_model = TabNetClassifier()
 
-            tabnet_model.load_model(
-                tabnet_path
-            )
+            tabnet_model.load_model(tabnet_path)
 
             models["TabNet"] = tabnet_model
 
         except Exception as e:
 
-            errors.append(
-                f"TabNet: {str(e)}"
-            )
+            errors.append(f"TabNet: {str(e)}")
 
     else:
 
-        errors.append(
-            f"TabNet model not found: {tabnet_path}"
-        )
+        errors.append(f"TabNet model not found: {tabnet_path}")
 
     # --------------------------------------------------------
     # HYBRID CONFIG
@@ -769,15 +774,11 @@ def load_all_models():
 
         try:
 
-            hybrid_config = joblib.load(
-                config_path
-            )
+            hybrid_config = joblib.load(config_path)
 
         except Exception as e:
 
-            errors.append(
-                f"Hybrid config: {str(e)}"
-            )
+            errors.append(f"Hybrid config: {str(e)}")
 
     # --------------------------------------------------------
     # SHAP EXPLAINER
@@ -789,15 +790,11 @@ def load_all_models():
 
         try:
 
-            explainer = shap.TreeExplainer(
-                models["LightGBM"]
-            )
+            explainer = shap.TreeExplainer(models["LightGBM"])
 
         except Exception as e:
 
-            errors.append(
-                f"SHAP: {str(e)}"
-            )
+            errors.append(f"SHAP: {str(e)}")
 
     if len(models) == 0:
 
@@ -820,14 +817,13 @@ def load_all_models():
 # LOAD
 # ============================================================
 
-models, scaler, explainer, model_error = (
-    load_all_models()
-)
+models, scaler, explainer, model_error = load_all_models()
 
 
 # ============================================================
 # MODEL PREDICTION
 # ============================================================
+
 
 def predict_all_models(scaled_data):
 
@@ -845,27 +841,17 @@ def predict_all_models(scaled_data):
 
         if model_name == "TabNet":
 
-            data = scaled_data.astype(
-                np.float32
-            )
+            data = scaled_data.astype(np.float32)
 
-            proba = model.predict_proba(
-                data
-            )[:, 1]
+            proba = model.predict_proba(data)[:, 1]
 
-            pred = (
-                proba >= 0.5
-            ).astype(int)
+            pred = (proba >= 0.5).astype(int)
 
         else:
 
-            proba = model.predict_proba(
-                scaled_data
-            )[:, 1]
+            proba = model.predict_proba(scaled_data)[:, 1]
 
-            pred = (
-                proba >= 0.5
-            ).astype(int)
+            pred = (proba >= 0.5).astype(int)
 
         probabilities[model_name] = proba
         predictions[model_name] = pred
@@ -876,22 +862,14 @@ def predict_all_models(scaled_data):
 
     if not probabilities:
 
-        raise RuntimeError(
-            "No trained models are available."
-        )
+        raise RuntimeError("No trained models are available.")
 
     # Equal-weight probability averaging
-    probability_matrix = np.column_stack(
-        list(probabilities.values())
-    )
+    probability_matrix = np.column_stack(list(probabilities.values()))
 
-    hybrid_probability = (
-        probability_matrix.mean(axis=1)
-    )
+    hybrid_probability = probability_matrix.mean(axis=1)
 
-    hybrid_prediction = (
-        hybrid_probability >= 0.5
-    ).astype(int)
+    hybrid_prediction = (hybrid_probability >= 0.5).astype(int)
 
     probabilities["Hybrid"] = hybrid_probability
     predictions["Hybrid"] = hybrid_prediction
@@ -903,20 +881,16 @@ def predict_all_models(scaled_data):
 # VALIDATION
 # ============================================================
 
+
 def validate_input_data(input_array):
 
     if input_array.shape[1] != 30:
 
-        raise ValueError(
-            f"Expected 30 features, "
-            f"got {input_array.shape[1]}"
-        )
+        raise ValueError(f"Expected 30 features, " f"got {input_array.shape[1]}")
 
     if np.any(np.isnan(input_array)):
 
-        raise ValueError(
-            "Input contains NaN values."
-        )
+        raise ValueError("Input contains NaN values.")
 
     return True
 
@@ -925,19 +899,14 @@ def validate_input_data(input_array):
 # CARD MASKING
 # ============================================================
 
+
 def mask_card_number(card_no):
 
-    card_str = (
-        str(card_no)
-        .replace(" ", "")
-        .replace("-", "")
-    )
+    card_str = str(card_no).replace(" ", "").replace("-", "")
 
     if len(card_str) >= 4:
 
-        return (
-            f"XXXX-XXXX-XXXX-{card_str[-4:]}"
-        )
+        return f"XXXX-XXXX-XXXX-{card_str[-4:]}"
 
     return "XXXX"
 
@@ -945,6 +914,7 @@ def mask_card_number(card_no):
 # ============================================================
 # RISK LEVEL
 # ============================================================
+
 
 def get_risk_level(probability):
 
@@ -977,6 +947,7 @@ def get_risk_level(probability):
 # ============================================================
 # PROBABILITY GAUGE
 # ============================================================
+
 
 def create_probability_gauge(probability):
 
@@ -1055,6 +1026,7 @@ def create_probability_gauge(probability):
 # SHAP
 # ============================================================
 
+
 def get_shap_values(
     explainer,
     scaled_data,
@@ -1070,9 +1042,7 @@ def get_shap_values(
             ]
         )
 
-    shap_values = explainer(
-        scaled_data
-    )
+    shap_values = explainer(scaled_data)
 
     values = shap_values.values
 
@@ -1095,9 +1065,7 @@ def get_shap_values(
         }
     )
 
-    df_shap["Abs_Value"] = (
-        df_shap["SHAP Value"].abs()
-    )
+    df_shap["Abs_Value"] = df_shap["SHAP Value"].abs()
 
     return df_shap
 
@@ -1112,33 +1080,23 @@ def plot_shap_summary(
         scaled_data,
     )
 
-    top = (
-        df_shap
-        .sort_values(
-            "Abs_Value",
-            ascending=True,
-        )
-        .tail(10)
-    )
+    top = df_shap.sort_values(
+        "Abs_Value",
+        ascending=True,
+    ).tail(10)
 
     fig = go.Figure()
 
     for _, row in top.iterrows():
 
-        value = float(
-            row["SHAP Value"]
-        )
+        value = float(row["SHAP Value"])
 
         fig.add_trace(
             go.Bar(
                 x=[value],
                 y=[row["Feature"]],
                 orientation="h",
-                marker_color=(
-                    "#dc2626"
-                    if value > 0
-                    else "#16a34a"
-                ),
+                marker_color=("#dc2626" if value > 0 else "#16a34a"),
                 hovertemplate=(
                     f"<b>{row['Feature']}</b><br>"
                     f"SHAP Impact: {value:+.4f}"
@@ -1181,14 +1139,14 @@ def plot_shap_summary(
 # SECTION HEADER
 # ============================================================
 
+
 def section_header(
     icon,
     title,
     description=None,
 ):
 
-    render_html(
-        f"""
+    render_html(f"""
 <div class="section-heading">
 
     <div class="section-heading-icon">
@@ -1200,52 +1158,45 @@ def section_header(
     </div>
 
 </div>
-"""
-    )
+""")
 
     if description:
 
-        render_html(
-            f"""
+        render_html(f"""
 <div class="section-heading-description">
     {html.escape(description)}
 </div>
-"""
-        )
+""")
 
 
 # ============================================================
 # MODEL PERFORMANCE
 # ============================================================
 
-def display_model_performance():
 
+def display_model_performance():
 
     cols = st.columns(3)
 
     metric_info = [
-        
         (
             "fa-crosshairs",
             "Precision",
             86.27,
             "Fraud prediction precision",
         ),
-
         (
             "fa-magnifying-glass-chart",
             "Recall",
             89.80,
             "Fraud detection coverage",
         ),
-
         (
             "fa-chart-simple",
             "F1-Score",
             88.00,
             "Balanced performance",
         ),
-        
     ]
 
     for col, item in zip(
@@ -1259,8 +1210,7 @@ def display_model_performance():
 
             value = float(value)
 
-            render_html(
-                f"""
+            render_html(f"""
                     <div class="kpi-card">
 
                         <div class="kpi-top">
@@ -1291,6 +1241,7 @@ def display_model_performance():
 # RESULT CARD
 # ============================================================
 
+
 def display_result_card(
     risk_class,
     risk_label,
@@ -1316,8 +1267,7 @@ def display_result_card(
         icon = "fa-circle-exclamation"
 
         description = (
-            "The transaction falls within the "
-            "review range and should be examined."
+            "The transaction falls within the " "review range and should be examined."
         )
 
     else:
@@ -1326,18 +1276,12 @@ def display_result_card(
         icon = "fa-circle-check"
 
         description = (
-            "The transaction currently appears "
-            "to have a low probability of fraud."
+            "The transaction currently appears " "to have a low probability of fraud."
         )
 
-    prediction_text = (
-        "Fraudulent"
-        if int(prediction) == 1
-        else "Legitimate"
-    )
+    prediction_text = "Fraudulent" if int(prediction) == 1 else "Legitimate"
 
-    render_html(
-        f"""
+    render_html(f"""
 <div class="result-card {risk_class}">
 
     <div class="result-header">
@@ -1409,21 +1353,19 @@ def display_result_card(
     </div>
 
 </div>
-"""
-    )
+""")
 
 
 # ============================================================
 # FACTORS
 # ============================================================
 
+
 def display_factors(top_reasons):
 
     for _, row in top_reasons.head(5).iterrows():
 
-        feature = html.escape(
-            str(row["Feature"])
-        )
+        feature = html.escape(str(row["Feature"]))
 
         reason = html.escape(
             FEATURE_EXPLANATIONS.get(
@@ -1432,9 +1374,7 @@ def display_factors(top_reasons):
             )
         )
 
-        shap_value = float(
-            row["SHAP Value"]
-        )
+        shap_value = float(row["SHAP Value"])
 
         if shap_value > 0:
 
@@ -1448,8 +1388,7 @@ def display_factors(top_reasons):
             direction_class = "down"
             direction = "Reduced fraud risk"
 
-        render_html(
-            f"""
+        render_html(f"""
 <div class="factor-card">
 
     <div class="factor-icon {direction_class}">
@@ -1478,8 +1417,7 @@ def display_factors(top_reasons):
     </div>
 
 </div>
-"""
-        )
+""")
 
 
 # ============================================================
@@ -1488,8 +1426,7 @@ def display_factors(top_reasons):
 
 with st.sidebar:
 
-    render_html(
-        """
+    render_html("""
 <div class="sidebar-brand">
 
     <div class="sidebar-brand-row">
@@ -1513,34 +1450,23 @@ with st.sidebar:
     </div>
 
 </div>
-"""
-    )
+""")
 
-    render_html(
-        '<div class="sidebar-section">System</div>'
-    )
+    render_html('<div class="sidebar-section">System</div>')
 
     if models is not None and len(models) == 6:
 
-        st.success(
-            "6-Model AI Engine Online"
-        )
+        st.success("6-Model AI Engine Online")
 
     elif models:
 
-        st.warning(
-            f"{len(models)}/6 Models Loaded"
-        )
+        st.warning(f"{len(models)}/6 Models Loaded")
 
     else:
 
-        st.error(
-            "Model Offline"
-        )
+        st.error("Model Offline")
 
-    render_html(
-        '<div class="sidebar-section">Base Models</div>'
-    )
+    render_html('<div class="sidebar-section">Base Models</div>')
 
     for model_name in [
         "Random Forest",
@@ -1551,15 +1477,9 @@ with st.sidebar:
         "LightGBM",
     ]:
 
-        status = (
-            "Loaded"
-            if models
-            and model_name in models
-            else "Unavailable"
-        )
+        status = "Loaded" if models and model_name in models else "Unavailable"
 
-        render_html(
-            f"""
+        render_html(f"""
 <div class="sidebar-info">
 
     <div class="sidebar-info-title">
@@ -1572,15 +1492,11 @@ with st.sidebar:
     </div>
 
 </div>
-"""
-        )
+""")
 
-    render_html(
-        '<div class="sidebar-section">Ensemble</div>'
-    )
+    render_html('<div class="sidebar-section">Ensemble</div>')
 
-    render_html(
-        """
+    render_html("""
 <div class="sidebar-info">
 
     <div class="sidebar-info-title">
@@ -1594,15 +1510,11 @@ with st.sidebar:
     </div>
 
 </div>
-"""
-    )
+""")
 
-    render_html(
-        '<div class="sidebar-section">Explainability</div>'
-    )
+    render_html('<div class="sidebar-section">Explainability</div>')
 
-    render_html(
-        """
+    render_html("""
 <div class="sidebar-info">
 
     <div class="sidebar-info-title">
@@ -1616,15 +1528,11 @@ with st.sidebar:
     </div>
 
 </div>
-"""
-    )
+""")
 
-    render_html(
-        '<div class="sidebar-section">Risk Thresholds</div>'
-    )
+    render_html('<div class="sidebar-section">Risk Thresholds</div>')
 
-    render_html(
-        """
+    render_html("""
 <div class="sidebar-info">
 
     <div class="sidebar-info-text">
@@ -1651,22 +1559,16 @@ with st.sidebar:
     </div>
 
 </div>
-"""
-    )
+""")
 
 
 # ============================================================
 # MODEL ERROR
 # ============================================================
 
-if (
-    models is None
-    or scaler is None
-    or len(models) == 0
-):
+if models is None or scaler is None or len(models) == 0:
 
-    render_html(
-        """
+    render_html("""
 <div class="result-card high">
 
     <div class="result-header">
@@ -1690,8 +1592,7 @@ if (
     </div>
 
 </div>
-"""
-    )
+""")
 
     if model_error:
         st.code(model_error)
@@ -1703,8 +1604,7 @@ if (
 # MAIN HEADER
 # ============================================================
 
-render_html(
-    """
+render_html("""
 <div class="dashboard-header">
 
     <div class="header-left">
@@ -1734,8 +1634,7 @@ render_html(
     </div>
 
 </div>
-"""
-)
+""")
 
 
 # ============================================================
@@ -1755,13 +1654,9 @@ display_model_performance()
 # MODEL CONFIGURATION
 # ============================================================
 
-with st.expander(
-    "View Model Configuration"
-):
+with st.expander("View Model Configuration"):
 
-    config_col1, config_col2, config_col3 = (
-        st.columns(3)
-    )
+    config_col1, config_col2, config_col3 = st.columns(3)
 
     config_col1.metric(
         "Base Models",
@@ -1804,8 +1699,7 @@ tab1, tab2, tab3 = st.tabs(
 
 with tab1:
 
-    render_html(
-        """
+    render_html("""
 <div class="mode-banner">
 
     <div class="mode-banner-title">
@@ -1820,8 +1714,7 @@ with tab1:
     </div>
 
 </div>
-"""
-    )
+""")
 
     input_col1, input_col2 = st.columns(
         2,
@@ -1830,8 +1723,7 @@ with tab1:
 
     with input_col1:
 
-        render_html(
-            """
+        render_html("""
 <div class="panel">
 
     <div class="panel-title">
@@ -1844,8 +1736,7 @@ with tab1:
     </div>
 
 </div>
-"""
-        )
+""")
 
         card_no = st.text_input(
             "Card Number",
@@ -1868,19 +1759,13 @@ with tab1:
         )
 
         hours = transaction_time // 3600
-        minutes = (
-            transaction_time % 3600
-        ) // 60
+        minutes = (transaction_time % 3600) // 60
 
-        st.caption(
-            f"Transaction time: "
-            f"{hours:02d}:{minutes:02d}"
-        )
+        st.caption(f"Transaction time: " f"{hours:02d}:{minutes:02d}")
 
     with input_col2:
 
-        render_html(
-            """
+        render_html("""
 <div class="panel">
 
     <div class="panel-title">
@@ -1893,8 +1778,7 @@ with tab1:
     </div>
 
 </div>
-"""
-        )
+""")
 
         merchant = st.selectbox(
             "Merchant Category",
@@ -1920,9 +1804,7 @@ with tab1:
             ],
         )
 
-        is_weekend = st.checkbox(
-            "Weekend / Holiday Transaction"
-        )
+        is_weekend = st.checkbox("Weekend / Holiday Transaction")
 
     st.markdown(
         "<br>",
@@ -1953,44 +1835,28 @@ with tab1:
                 dtype=float,
             )
 
-            validate_input_data(
-                input_data
-            )
+            validate_input_data(input_data)
 
-            scaled_data = scaler.transform(
-                input_data
-            )
+            scaled_data = scaler.transform(input_data)
 
-            predictions, probabilities = (
-                predict_all_models(
-                    scaled_data
-                )
-            )
+            predictions, probabilities = predict_all_models(scaled_data)
 
             # ------------------------------------------------
             # HYBRID RESULT
             # ------------------------------------------------
 
-            prediction = int(
-                predictions["Hybrid"][0]
-            )
+            prediction = int(predictions["Hybrid"][0])
 
-            probability = float(
-                probabilities["Hybrid"][0]
-            )
+            probability = float(probabilities["Hybrid"][0])
 
             (
                 risk_label,
                 risk_class,
                 action,
                 _,
-            ) = get_risk_level(
-                probability
-            )
+            ) = get_risk_level(probability)
 
-            masked_card = mask_card_number(
-                card_no
-            )
+            masked_card = mask_card_number(card_no)
 
             st.markdown(
                 "<br>",
@@ -2003,11 +1869,9 @@ with tab1:
                 "Final risk assessment generated by the six-model hybrid ensemble.",
             )
 
-            result_col1, result_col2 = (
-                st.columns(
-                    [1.6, 1],
-                    gap="large",
-                )
+            result_col1, result_col2 = st.columns(
+                [1.6, 1],
+                gap="large",
             )
 
             with result_col1:
@@ -2022,8 +1886,7 @@ with tab1:
 
             with result_col2:
 
-                render_html(
-                    f"""
+                render_html(f"""
 <div class="risk-score-card">
 
     <div class="risk-score-label">
@@ -2039,8 +1902,7 @@ with tab1:
     </div>
 
 </div>
-"""
-                )
+""")
 
             # ------------------------------------------------
             # GAUGE
@@ -2051,35 +1913,26 @@ with tab1:
                 unsafe_allow_html=True,
             )
 
-            gauge_col1, gauge_col2 = (
-                st.columns(
-                    [1.25, 1],
-                    gap="large",
-                )
+            gauge_col1, gauge_col2 = st.columns(
+                [1.25, 1],
+                gap="large",
             )
 
             with gauge_col1:
 
-                render_html(
-                    '<div class="panel">'
-                )
+                render_html('<div class="panel">')
 
                 st.plotly_chart(
-                    create_probability_gauge(
-                        probability
-                    ),
+                    create_probability_gauge(probability),
                     use_container_width=True,
-                    config={
-                        "displayModeBar": False
-                    },
+                    config={"displayModeBar": False},
                 )
 
                 render_html("</div>")
 
             with gauge_col2:
 
-                render_html(
-                    """
+                render_html("""
 <div class="panel">
 
     <div class="panel-title">
@@ -2092,8 +1945,7 @@ with tab1:
     </div>
 
 </div>
-"""
-                )
+""")
 
                 st.metric(
                     "Hybrid Probability",
@@ -2101,9 +1953,7 @@ with tab1:
                 )
 
                 fraud_votes = sum(
-                    int(
-                        predictions[name][0]
-                    )
+                    int(predictions[name][0])
                     for name in predictions
                     if name != "Hybrid"
                 )
@@ -2115,11 +1965,7 @@ with tab1:
 
                 st.metric(
                     "Decision",
-                    (
-                        "FRAUD"
-                        if prediction == 1
-                        else "LEGITIMATE"
-                    ),
+                    ("FRAUD" if prediction == 1 else "LEGITIMATE"),
                 )
 
             # ------------------------------------------------
@@ -2139,42 +1985,31 @@ with tab1:
 
             if explainer is not None:
 
-                shap_fig, top_reasons = (
-                    plot_shap_summary(
-                        explainer,
-                        scaled_data,
-                    )
+                shap_fig, top_reasons = plot_shap_summary(
+                    explainer,
+                    scaled_data,
                 )
 
-                shap_col1, shap_col2 = (
-                    st.columns(
-                        [1.35, 1],
-                        gap="large",
-                    )
+                shap_col1, shap_col2 = st.columns(
+                    [1.35, 1],
+                    gap="large",
                 )
 
                 with shap_col1:
 
-                    render_html(
-                        '<div class="panel">'
-                    )
+                    render_html('<div class="panel">')
 
                     st.plotly_chart(
                         shap_fig,
                         use_container_width=True,
-                        config={
-                            "displayModeBar": False
-                        },
+                        config={"displayModeBar": False},
                     )
 
-                    render_html(
-                        "</div>"
-                    )
+                    render_html("</div>")
 
                 with shap_col2:
 
-                    render_html(
-                        """
+                    render_html("""
 <div class="panel">
 
     <div class="panel-title">
@@ -2187,18 +2022,13 @@ with tab1:
     </div>
 
 </div>
-"""
-                    )
+""")
 
-                    display_factors(
-                        top_reasons
-                    )
+                    display_factors(top_reasons)
 
         except Exception as e:
 
-            st.error(
-                f"Error during transaction analysis: {str(e)}"
-            )
+            st.error(f"Error during transaction analysis: {str(e)}")
 
 
 # ============================================================
@@ -2207,8 +2037,7 @@ with tab1:
 
 with tab2:
 
-    render_html(
-        """
+    render_html("""
 <div class="mode-banner">
 
     <div class="mode-banner-title">
@@ -2222,8 +2051,7 @@ with tab2:
     </div>
 
 </div>
-"""
-    )
+""")
 
     if "time_val" not in st.session_state:
         st.session_state.time_val = 100.0
@@ -2235,13 +2063,9 @@ with tab2:
 
         if f"v_{i}" not in st.session_state:
 
-            st.session_state[
-                f"v_{i}"
-            ] = 0.0
+            st.session_state[f"v_{i}"] = 0.0
 
-    sample_col1, sample_col2, sample_col3 = (
-        st.columns(3)
-    )
+    sample_col1, sample_col2, sample_col3 = st.columns(3)
 
     if sample_col1.button(
         "Load Fraud Sample",
@@ -2285,9 +2109,7 @@ with tab2:
             1,
         ):
 
-            st.session_state[
-                f"v_{i}"
-            ] = value
+            st.session_state[f"v_{i}"] = value
 
         st.session_state.time_val = 406.0
         st.session_state.amount_val = 0.0
@@ -2302,9 +2124,7 @@ with tab2:
 
         for i in range(1, 29):
 
-            st.session_state[
-                f"v_{i}"
-            ] = 0.0
+            st.session_state[f"v_{i}"] = 0.0
 
         st.session_state.time_val = 100.0
         st.session_state.amount_val = 50.0
@@ -2319,18 +2139,14 @@ with tab2:
 
         for i in range(1, 29):
 
-            st.session_state[
-                f"v_{i}"
-            ] = 0.0
+            st.session_state[f"v_{i}"] = 0.0
 
         st.session_state.time_val = 0.0
         st.session_state.amount_val = 0.0
 
         st.rerun()
 
-    basic_col1, basic_col2 = (
-        st.columns(2)
-    )
+    basic_col1, basic_col2 = st.columns(2)
 
     with basic_col1:
 
@@ -2399,36 +2215,22 @@ with tab2:
                 dtype=float,
             )
 
-            validate_input_data(
-                input_data
-            )
+            validate_input_data(input_data)
 
-            scaled_data = scaler.transform(
-                input_data
-            )
+            scaled_data = scaler.transform(input_data)
 
-            predictions, probabilities = (
-                predict_all_models(
-                    scaled_data
-                )
-            )
+            predictions, probabilities = predict_all_models(scaled_data)
 
-            hybrid_prediction = int(
-                predictions["Hybrid"][0]
-            )
+            hybrid_prediction = int(predictions["Hybrid"][0])
 
-            hybrid_probability = float(
-                probabilities["Hybrid"][0]
-            )
+            hybrid_probability = float(probabilities["Hybrid"][0])
 
             (
                 risk_label,
                 risk_class,
                 action,
                 _,
-            ) = get_risk_level(
-                hybrid_probability
-            )
+            ) = get_risk_level(hybrid_probability)
 
             st.markdown(
                 "<br>",
@@ -2441,11 +2243,9 @@ with tab2:
                 "Final prediction generated by the six-model hybrid ensemble.",
             )
 
-            result_col1, result_col2 = (
-                st.columns(
-                    [1.4, 1],
-                    gap="large",
-                )
+            result_col1, result_col2 = st.columns(
+                [1.4, 1],
+                gap="large",
             )
 
             with result_col1:
@@ -2460,8 +2260,7 @@ with tab2:
 
             with result_col2:
 
-                render_html(
-                    f"""
+                render_html(f"""
 <div class="risk-score-card">
 
     <div class="risk-score-label">
@@ -2477,8 +2276,7 @@ with tab2:
     </div>
 
 </div>
-"""
-                )
+""")
 
             # ------------------------------------------------
             # SHAP
@@ -2497,42 +2295,31 @@ with tab2:
                     "SHAP identifies feature contributions using the LightGBM base model.",
                 )
 
-                shap_fig, top_reasons = (
-                    plot_shap_summary(
-                        explainer,
-                        scaled_data,
-                    )
+                shap_fig, top_reasons = plot_shap_summary(
+                    explainer,
+                    scaled_data,
                 )
 
-                technical_col1, technical_col2 = (
-                    st.columns(
-                        [1.35, 1],
-                        gap="large",
-                    )
+                technical_col1, technical_col2 = st.columns(
+                    [1.35, 1],
+                    gap="large",
                 )
 
                 with technical_col1:
 
-                    render_html(
-                        '<div class="panel">'
-                    )
+                    render_html('<div class="panel">')
 
                     st.plotly_chart(
                         shap_fig,
                         use_container_width=True,
-                        config={
-                            "displayModeBar": False
-                        },
+                        config={"displayModeBar": False},
                     )
 
-                    render_html(
-                        "</div>"
-                    )
+                    render_html("</div>")
 
                 with technical_col2:
 
-                    render_html(
-                        """
+                    render_html("""
 <div class="panel">
 
     <div class="panel-title">
@@ -2545,18 +2332,13 @@ with tab2:
     </div>
 
 </div>
-"""
-                    )
+""")
 
-                    display_factors(
-                        top_reasons
-                    )
+                    display_factors(top_reasons)
 
         except Exception as e:
 
-            st.error(
-                f"Technical analysis failed: {str(e)}"
-            )
+            st.error(f"Technical analysis failed: {str(e)}")
 
 
 # ============================================================
@@ -2565,8 +2347,7 @@ with tab2:
 
 with tab3:
 
-    render_html(
-        """
+    render_html("""
 <div class="mode-banner">
 
     <div class="mode-banner-title">
@@ -2581,11 +2362,9 @@ with tab3:
     </div>
 
 </div>
-"""
-    )
+""")
 
-    render_html(
-        """
+    render_html("""
 <div class="upload-info">
 
     <div class="upload-info-title">
@@ -2602,8 +2381,7 @@ with tab3:
     </div>
 
 </div>
-"""
-    )
+""")
 
     uploaded_file = st.file_uploader(
         "Upload transaction CSV",
@@ -2615,64 +2393,29 @@ with tab3:
 
         try:
 
-            batch_df = pd.read_csv(
-                uploaded_file
-            )
+            batch_df = pd.read_csv(uploaded_file)
 
-            required_cols = (
-                ["Time"]
-                + [
-                    f"V{i}"
-                    for i in range(1, 29)
-                ]
-                + ["Amount"]
-            )
+            required_cols = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]
 
-            missing_cols = [
-                col
-                for col in required_cols
-                if col not in batch_df.columns
-            ]
+            missing_cols = [col for col in required_cols if col not in batch_df.columns]
 
             if missing_cols:
 
-                st.error(
-                    "Missing required columns: "
-                    + ", ".join(
-                        missing_cols
-                    )
-                )
+                st.error("Missing required columns: " + ", ".join(missing_cols))
 
             elif batch_df.empty:
 
-                st.warning(
-                    "The uploaded CSV does not "
-                    "contain any rows."
-                )
+                st.warning("The uploaded CSV does not " "contain any rows.")
 
             else:
 
-                X_batch = (
-                    batch_df[
-                        required_cols
-                    ].values
-                )
+                X_batch = batch_df[required_cols].values
 
-                validate_input_data(
-                    X_batch
-                )
+                validate_input_data(X_batch)
 
-                X_batch_scaled = (
-                    scaler.transform(
-                        X_batch
-                    )
-                )
+                X_batch_scaled = scaler.transform(X_batch)
 
-                predictions, probabilities = (
-                    predict_all_models(
-                        X_batch_scaled
-                    )
-                )
+                predictions, probabilities = predict_all_models(X_batch_scaled)
 
                 # ------------------------------------------------
                 # INDIVIDUAL MODEL COLUMNS
@@ -2691,94 +2434,51 @@ with tab3:
                     if model_name not in probabilities:
                         continue
 
-                    safe_name = (
-                        model_name
-                        .replace(" ", "_")
-                        .replace("-", "")
-                    )
+                    safe_name = model_name.replace(" ", "_").replace("-", "")
 
-                    batch_df[
-                        f"{safe_name}_Probability_%"
-                    ] = np.round(
-                        probabilities[
-                            model_name
-                        ] * 100,
+                    batch_df[f"{safe_name}_Probability_%"] = np.round(
+                        probabilities[model_name] * 100,
                         2,
                     )
 
-                    batch_df[
-                        f"{safe_name}_Prediction"
-                    ] = predictions[
-                        model_name
-                    ]
+                    batch_df[f"{safe_name}_Prediction"] = predictions[model_name]
 
                 # ------------------------------------------------
                 # HYBRID
                 # ------------------------------------------------
 
-                hybrid_probabilities = (
-                    probabilities[
-                        "Hybrid"
-                    ]
-                )
+                hybrid_probabilities = probabilities["Hybrid"]
 
-                hybrid_predictions = (
-                    predictions[
-                        "Hybrid"
-                    ]
-                )
+                hybrid_predictions = predictions["Hybrid"]
 
-                batch_df[
-                    "Hybrid_Fraud_Prediction"
-                ] = hybrid_predictions
+                batch_df["Hybrid_Fraud_Prediction"] = hybrid_predictions
 
-                batch_df[
-                    "Hybrid_Fraud_Probability_%"
-                ] = np.round(
+                batch_df["Hybrid_Fraud_Probability_%"] = np.round(
                     hybrid_probabilities * 100,
                     2,
                 )
 
-                batch_df[
-                    "Hybrid_Risk_Level"
-                ] = pd.Series(
-                    hybrid_probabilities
-                ).apply(
-                    lambda x:
-                        "HIGH"
-                        if x > 0.75
-                        else (
-                            "MEDIUM"
-                            if x > 0.50
-                            else "LOW"
+                batch_df["Hybrid_Risk_Level"] = (
+                    pd.Series(hybrid_probabilities)
+                    .apply(
+                        lambda x: (
+                            "HIGH" if x > 0.75 else ("MEDIUM" if x > 0.50 else "LOW")
                         )
-                ).values
+                    )
+                    .values
+                )
 
                 # ------------------------------------------------
                 # SUMMARY
                 # ------------------------------------------------
 
-                total_transactions = len(
-                    batch_df
-                )
+                total_transactions = len(batch_df)
 
-                legitimate = int(
-                    (
-                        hybrid_predictions == 0
-                    ).sum()
-                )
+                legitimate = int((hybrid_predictions == 0).sum())
 
-                flagged = int(
-                    (
-                        hybrid_predictions == 1
-                    ).sum()
-                )
+                flagged = int((hybrid_predictions == 1).sum())
 
-                fraud_rate = (
-                    flagged
-                    / total_transactions
-                    * 100
-                )
+                fraud_rate = flagged / total_transactions * 100
 
                 st.markdown(
                     "<br>",
@@ -2808,9 +2508,7 @@ with tab3:
                     ),
                 ]
 
-                metric_cols = st.columns(
-                    4
-                )
+                metric_cols = st.columns(4)
 
                 for col, item in zip(
                     metric_cols,
@@ -2821,8 +2519,7 @@ with tab3:
 
                     with col:
 
-                        render_html(
-                            f"""
+                        render_html(f"""
 <div class="kpi-card">
 
     <div class="kpi-top">
@@ -2842,8 +2539,7 @@ with tab3:
     </div>
 
 </div>
-"""
-                        )
+""")
 
                 st.markdown(
                     "<br>",
@@ -2859,45 +2555,31 @@ with tab3:
                 display_cols = [
                     "Time",
                     "Amount",
-
                     "Random_Forest_Probability_%",
                     "XGBoost_Probability_%",
                     "Logistic_Regression_Probability_%",
                     "CatBoost_Probability_%",
                     "TabNet_Probability_%",
                     "LightGBM_Probability_%",
-
                     "Hybrid_Fraud_Prediction",
                     "Hybrid_Fraud_Probability_%",
                     "Hybrid_Risk_Level",
                 ]
 
-                display_cols = [
-                    col
-                    for col in display_cols
-                    if col in batch_df.columns
-                ]
+                display_cols = [col for col in display_cols if col in batch_df.columns]
 
                 st.dataframe(
-                    batch_df[
-                        display_cols
-                    ],
+                    batch_df[display_cols],
                     use_container_width=True,
                     hide_index=True,
                 )
 
-                csv_data = (
-                    batch_df.to_csv(
-                        index=False
-                    )
-                )
+                csv_data = batch_df.to_csv(index=False)
 
                 st.download_button(
                     "Download Analysis Results",
                     data=csv_data,
-                    file_name=(
-                        "fraud_analysis_results.csv"
-                    ),
+                    file_name=("fraud_analysis_results.csv"),
                     mime="text/csv",
                     use_container_width=True,
                     type="primary",
@@ -2905,17 +2587,14 @@ with tab3:
 
         except Exception as e:
 
-            st.error(
-                f"Error processing CSV: {str(e)}"
-            )
+            st.error(f"Error processing CSV: {str(e)}")
 
 
 # ============================================================
 # FOOTER
 # ============================================================
 
-render_html(
-    """
+render_html("""
 <div class="footer">
 
     <div>
@@ -2930,5 +2609,4 @@ render_html(
     </div>
 
 </div>
-"""
-)
+""")
