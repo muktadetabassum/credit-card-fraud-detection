@@ -48,7 +48,11 @@ st.markdown(
     display: none !important;
 }
 
-a[href*="github.com"] {
+[data-testid="stBaseButton-header"] {
+    display: none !important;
+}
+
+[data-testid="stToolbarActionButtonLabel"] {
     display: none !important;
 }
 
