@@ -44,19 +44,35 @@ st.markdown(
     padding: 2.5rem 2.5rem 3rem;
 }
 
+.stAppDeployButton {
+    display: none !important;
+}
+
+
+[data-testid="stAppToolbar"] {
+    display: none !important;
+}
+
+[data-testid="stToolbar"] {
+    display: none !important;
+}
+
+
+#MainMenu {
+    visibility: hidden !important;
+}
+
+
+footer {
+    visibility: hidden !important;
+}
+
 [data-testid="stHeader"] {
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
 }
 
-.stAppDeployButton {
-    display: none !important;
-}
-
-[data-testid="stAppToolbar"] {
-    display: none !important;
-}
 
 [data-testid="stToolbar"] {
     background: transparent !important;
