@@ -675,6 +675,7 @@ def load_all_models():
         "scaler.pkl",
     )
     
+    
     config_path = os.path.join(
         MODEL_DIR,
         "hybrid_config.pkl",
