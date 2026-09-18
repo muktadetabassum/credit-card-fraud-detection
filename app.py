@@ -9,9 +9,7 @@ import plotly.graph_objects as go
 
 from pytorch_tabnet.tab_model import TabNetClassifier
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
+
 
 st.set_page_config(
     page_title="Credit Card Fraud Detection",
@@ -20,10 +18,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-
-# ============================================================
-# FONT AWESOME + GLOBAL CSS
-# ============================================================
 
 st.markdown(
     """
@@ -628,12 +622,7 @@ button[data-testid="stSidebarCollapsedControl"]:hover {
     unsafe_allow_html=True,
 )
 
-
-# ============================================================
 # HTML HELPER
-# ============================================================
-
-
 def render_html(content):
 
     lines = [line.strip() for line in content.strip().splitlines()]
@@ -646,9 +635,7 @@ def render_html(content):
     )
 
 
-# ============================================================
 # FEATURE EXPLANATIONS
-# ============================================================
 
 FEATURE_EXPLANATIONS = {
     "Time": "Transaction Time Pattern",
@@ -660,9 +647,7 @@ FEATURE_EXPLANATIONS = {
 FEATURE_NAMES = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]
 
 
-# ============================================================
 # MODEL PATHS
-# ============================================================
 
 MODEL_DIR = "models"
 
@@ -674,11 +659,7 @@ MODEL_FILES = {
     "LightGBM": "lightgbm.pkl",
 }
 
-
-# ============================================================
 # LOAD ALL MODELS
-# ============================================================
-
 
 @st.cache_resource
 def load_all_models():
@@ -696,10 +677,6 @@ def load_all_models():
         "hybrid_config.pkl",
     )
 
-    # --------------------------------------------------------
-    # SCALER
-    # --------------------------------------------------------
-
     if not os.path.exists(scaler_path):
 
         return (
@@ -711,10 +688,6 @@ def load_all_models():
         )
 
     scaler = joblib.load(scaler_path)
-
-    # --------------------------------------------------------
-    # CLASSICAL MODELS
-    # --------------------------------------------------------
 
     for model_name, filename in MODEL_FILES.items():
 
@@ -736,10 +709,6 @@ def load_all_models():
         except Exception as e:
 
             errors.append(f"{model_name}: {str(e)}")
-
-    # --------------------------------------------------------
-    # TABNET
-    # --------------------------------------------------------
 
     tabnet_path = os.path.join(
         MODEL_DIR,
@@ -764,9 +733,6 @@ def load_all_models():
 
         errors.append(f"TabNet model not found: {tabnet_path}")
 
-    # --------------------------------------------------------
-    # HYBRID CONFIG
-    # --------------------------------------------------------
 
     hybrid_config = None
 
@@ -780,9 +746,6 @@ def load_all_models():
 
             errors.append(f"Hybrid config: {str(e)}")
 
-    # --------------------------------------------------------
-    # SHAP EXPLAINER
-    # --------------------------------------------------------
 
     explainer = None
 
@@ -813,16 +776,9 @@ def load_all_models():
     )
 
 
-# ============================================================
-# LOAD
-# ============================================================
-
 models, scaler, explainer, model_error = load_all_models()
 
-
-# ============================================================
 # MODEL PREDICTION
-# ============================================================
 
 
 def predict_all_models(scaled_data):
@@ -830,12 +786,6 @@ def predict_all_models(scaled_data):
     probabilities = {}
 
     predictions = {}
-
-    # --------------------------------------------------------
-    # INDIVIDUAL MODEL PREDICTIONS
-    # Used internally for hybrid calculation.
-    # No individual model table is displayed.
-    # --------------------------------------------------------
 
     for model_name, model in models.items():
 
@@ -856,9 +806,6 @@ def predict_all_models(scaled_data):
         probabilities[model_name] = proba
         predictions[model_name] = pred
 
-    # --------------------------------------------------------
-    # HYBRID
-    # --------------------------------------------------------
 
     if not probabilities:
 
@@ -877,10 +824,7 @@ def predict_all_models(scaled_data):
     return predictions, probabilities
 
 
-# ============================================================
 # VALIDATION
-# ============================================================
-
 
 def validate_input_data(input_array):
 
@@ -895,10 +839,7 @@ def validate_input_data(input_array):
     return True
 
 
-# ============================================================
 # CARD MASKING
-# ============================================================
-
 
 def mask_card_number(card_no):
 
@@ -911,10 +852,7 @@ def mask_card_number(card_no):
     return "XXXX"
 
 
-# ============================================================
 # RISK LEVEL
-# ============================================================
-
 
 def get_risk_level(probability):
 
@@ -943,11 +881,7 @@ def get_risk_level(probability):
         "fa-circle-check",
     )
 
-
-# ============================================================
 # PROBABILITY GAUGE
-# ============================================================
-
 
 def create_probability_gauge(probability):
 
@@ -1021,11 +955,7 @@ def create_probability_gauge(probability):
 
     return fig
 
-
-# ============================================================
 # SHAP
-# ============================================================
-
 
 def get_shap_values(
     explainer,
@@ -1135,10 +1065,7 @@ def plot_shap_summary(
     )
 
 
-# ============================================================
 # SECTION HEADER
-# ============================================================
-
 
 def section_header(
     icon,
@@ -1168,10 +1095,7 @@ def section_header(
 </div>
 """)
 
-
-# ============================================================
 # MODEL PERFORMANCE
-# ============================================================
 
 
 def display_model_performance():
@@ -1237,10 +1161,7 @@ def display_model_performance():
                     """)
 
 
-# ============================================================
 # RESULT CARD
-# ============================================================
-
 
 def display_result_card(
     risk_class,
@@ -1356,9 +1277,7 @@ def display_result_card(
 """)
 
 
-# ============================================================
 # FACTORS
-# ============================================================
 
 
 def display_factors(top_reasons):
@@ -1420,9 +1339,7 @@ def display_factors(top_reasons):
 """)
 
 
-# ============================================================
 # SIDEBAR
-# ============================================================
 
 with st.sidebar:
 
@@ -1561,10 +1478,7 @@ with st.sidebar:
 </div>
 """)
 
-
-# ============================================================
 # MODEL ERROR
-# ============================================================
 
 if models is None or scaler is None or len(models) == 0:
 
@@ -1599,10 +1513,7 @@ if models is None or scaler is None or len(models) == 0:
 
     st.stop()
 
-
-# ============================================================
 # MAIN HEADER
-# ============================================================
 
 render_html("""
 <div class="dashboard-header">
@@ -1637,9 +1548,7 @@ render_html("""
 """)
 
 
-# ============================================================
 # MODEL PERFORMANCE
-# ============================================================
 
 section_header(
     "fa-chart-line",
@@ -1650,9 +1559,7 @@ section_header(
 display_model_performance()
 
 
-# ============================================================
 # MODEL CONFIGURATION
-# ============================================================
 
 with st.expander("View Model Configuration"):
 
@@ -1680,9 +1587,7 @@ st.markdown(
 )
 
 
-# ============================================================
 # TABS
-# ============================================================
 
 tab1, tab2, tab3 = st.tabs(
     [
@@ -1693,9 +1598,7 @@ tab1, tab2, tab3 = st.tabs(
 )
 
 
-# ============================================================
 # TAB 1 — BANKER MODE
-# ============================================================
 
 with tab1:
 
@@ -1841,10 +1744,6 @@ with tab1:
 
             predictions, probabilities = predict_all_models(scaled_data)
 
-            # ------------------------------------------------
-            # HYBRID RESULT
-            # ------------------------------------------------
-
             prediction = int(predictions["Hybrid"][0])
 
             probability = float(probabilities["Hybrid"][0])
@@ -1887,26 +1786,24 @@ with tab1:
             with result_col2:
 
                 render_html(f"""
-<div class="risk-score-card">
+                <div class="risk-score-card">
 
-    <div class="risk-score-label">
-        Hybrid Fraud Risk Score
-    </div>
+                    <div class="risk-score-label">
+                        Hybrid Fraud Risk Score
+                    </div>
 
-    <div class="risk-score-value">
-        {probability * 100:.1f}%
-    </div>
+                    <div class="risk-score-value">
+                        {probability * 100:.1f}%
+                    </div>
 
-    <div class="risk-score-threshold">
-        Decision threshold: 50%
-    </div>
+                    <div class="risk-score-threshold">
+                        Decision threshold: 50%
+                    </div>
 
-</div>
-""")
+                </div>
+                """)
 
-            # ------------------------------------------------
-            # GAUGE
-            # ------------------------------------------------
+         
 
             st.markdown(
                 "<br>",
@@ -1933,19 +1830,19 @@ with tab1:
             with gauge_col2:
 
                 render_html("""
-<div class="panel">
+                    <div class="panel">
 
-    <div class="panel-title">
-        <i class="fa-solid fa-scale-balanced"></i>
-        Ensemble Interpretation
-    </div>
+                        <div class="panel-title">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                            Ensemble Interpretation
+                        </div>
 
-    <div class="panel-description">
-        Probability generated from six base classifiers.
-    </div>
+                        <div class="panel-description">
+                            Probability generated from six base classifiers.
+                        </div>
 
-</div>
-""")
+                    </div>
+                """)
 
                 st.metric(
                     "Hybrid Probability",
@@ -1968,9 +1865,6 @@ with tab1:
                     ("FRAUD" if prediction == 1 else "LEGITIMATE"),
                 )
 
-            # ------------------------------------------------
-            # SHAP
-            # ------------------------------------------------
 
             st.markdown(
                 "<br>",
@@ -2010,19 +1904,19 @@ with tab1:
                 with shap_col2:
 
                     render_html("""
-<div class="panel">
+                    <div class="panel">
 
-    <div class="panel-title">
-        <i class="fa-solid fa-list-check"></i>
-        Key Risk Factors
-    </div>
+                        <div class="panel-title">
+                            <i class="fa-solid fa-list-check"></i>
+                            Key Risk Factors
+                        </div>
 
-    <div class="panel-description">
-        Highest-impact features from the SHAP analysis.
-    </div>
+                        <div class="panel-description">
+                            Highest-impact features from the SHAP analysis.
+                        </div>
 
-</div>
-""")
+                    </div>
+                    """)
 
                     display_factors(top_reasons)
 
@@ -2030,28 +1924,25 @@ with tab1:
 
             st.error(f"Error during transaction analysis: {str(e)}")
 
-
-# ============================================================
 # TAB 2 — TECHNICAL ANALYSIS
-# ============================================================
 
 with tab2:
 
     render_html("""
-<div class="mode-banner">
+            <div class="mode-banner">
 
-    <div class="mode-banner-title">
-        <i class="fa-solid fa-gears"></i>
-        Technical Model Analysis
-    </div>
+                <div class="mode-banner-title">
+                    <i class="fa-solid fa-gears"></i>
+                    Technical Model Analysis
+                </div>
 
-    <div class="mode-banner-description">
-        Directly modify Time, V1–V28 and Amount
-        and inspect the final hybrid prediction.
-    </div>
+                <div class="mode-banner-description">
+                    Directly modify Time, V1–V28 and Amount
+                    and inspect the final hybrid prediction.
+                </div>
 
-</div>
-""")
+            </div>
+        """)
 
     if "time_val" not in st.session_state:
         st.session_state.time_val = 100.0
@@ -2261,26 +2152,23 @@ with tab2:
             with result_col2:
 
                 render_html(f"""
-<div class="risk-score-card">
+                <div class="risk-score-card">
 
-    <div class="risk-score-label">
-        Hybrid Fraud Probability
-    </div>
+                    <div class="risk-score-label">
+                        Hybrid Fraud Probability
+                    </div>
 
-    <div class="risk-score-value">
-        {hybrid_probability * 100:.2f}%
-    </div>
+                    <div class="risk-score-value">
+                        {hybrid_probability * 100:.2f}%
+                    </div>
 
-    <div class="risk-score-threshold">
-        Decision threshold: 50%
-    </div>
+                    <div class="risk-score-threshold">
+                        Decision threshold: 50%
+                    </div>
 
-</div>
-""")
+                </div>
+                """)
 
-            # ------------------------------------------------
-            # SHAP
-            # ------------------------------------------------
 
             if explainer is not None:
 
@@ -2320,19 +2208,19 @@ with tab2:
                 with technical_col2:
 
                     render_html("""
-<div class="panel">
+                    <div class="panel">
 
-    <div class="panel-title">
-        <i class="fa-solid fa-flask"></i>
-        Feature Impact
-    </div>
+                        <div class="panel-title">
+                            <i class="fa-solid fa-flask"></i>
+                            Feature Impact
+                        </div>
 
-    <div class="panel-description">
-        Top contributing features from LightGBM SHAP.
-    </div>
+                        <div class="panel-description">
+                            Top contributing features from LightGBM SHAP.
+                        </div>
 
-</div>
-""")
+                    </div>
+                    """)
 
                     display_factors(top_reasons)
 
@@ -2341,47 +2229,45 @@ with tab2:
             st.error(f"Technical analysis failed: {str(e)}")
 
 
-# ============================================================
 # TAB 3 — BULK CSV
-# ============================================================
 
 with tab3:
 
     render_html("""
-<div class="mode-banner">
+        <div class="mode-banner">
 
-    <div class="mode-banner-title">
-        <i class="fa-solid fa-file-csv"></i>
-        Bulk Transaction Processing
-    </div>
+            <div class="mode-banner-title">
+                <i class="fa-solid fa-file-csv"></i>
+                Bulk Transaction Processing
+            </div>
 
-    <div class="mode-banner-description">
-        Upload multiple transactions and generate
-        predictions using all six models plus the
-        final hybrid ensemble.
-    </div>
+            <div class="mode-banner-description">
+                Upload multiple transactions and generate
+                predictions using all six models plus the
+                final hybrid ensemble.
+            </div>
 
-</div>
-""")
+        </div>
+        """)
 
     render_html("""
-<div class="upload-info">
+        <div class="upload-info">
 
-    <div class="upload-info-title">
-        <i class="fa-solid fa-circle-info"></i>
-        Required CSV Structure
-    </div>
+            <div class="upload-info-title">
+                <i class="fa-solid fa-circle-info"></i>
+                Required CSV Structure
+            </div>
 
-    <div class="upload-info-text">
-        Your file must contain:
-        <strong>Time</strong>,
-        <strong>V1–V28</strong>,
-        and <strong>Amount</strong>.
-        Additional columns are preserved.
-    </div>
+            <div class="upload-info-text">
+                Your file must contain:
+                <strong>Time</strong>,
+                <strong>V1–V28</strong>,
+                and <strong>Amount</strong>.
+                Additional columns are preserved.
+            </div>
 
-</div>
-""")
+        </div>
+        """)
 
     uploaded_file = st.file_uploader(
         "Upload transaction CSV",
@@ -2417,11 +2303,6 @@ with tab3:
 
                 predictions, probabilities = predict_all_models(X_batch_scaled)
 
-                # ------------------------------------------------
-                # INDIVIDUAL MODEL COLUMNS
-                # These remain available in the CSV output.
-                # ------------------------------------------------
-
                 for model_name in [
                     "Random Forest",
                     "XGBoost",
@@ -2443,9 +2324,6 @@ with tab3:
 
                     batch_df[f"{safe_name}_Prediction"] = predictions[model_name]
 
-                # ------------------------------------------------
-                # HYBRID
-                # ------------------------------------------------
 
                 hybrid_probabilities = probabilities["Hybrid"]
 
@@ -2468,9 +2346,6 @@ with tab3:
                     .values
                 )
 
-                # ------------------------------------------------
-                # SUMMARY
-                # ------------------------------------------------
 
                 total_transactions = len(batch_df)
 
@@ -2520,26 +2395,26 @@ with tab3:
                     with col:
 
                         render_html(f"""
-<div class="kpi-card">
+                        <div class="kpi-card">
 
-    <div class="kpi-top">
+                            <div class="kpi-top">
 
-        <div class="kpi-label">
-            {html.escape(label)}
-        </div>
+                                <div class="kpi-label">
+                                    {html.escape(label)}
+                                </div>
 
-        <div class="kpi-icon">
-            <i class="fa-solid {icon}"></i>
-        </div>
+                                <div class="kpi-icon">
+                                    <i class="fa-solid {icon}"></i>
+                                </div>
 
-    </div>
+                            </div>
 
-    <div class="kpi-value">
-        {html.escape(value)}
-    </div>
+                            <div class="kpi-value">
+                                {html.escape(value)}
+                            </div>
 
-</div>
-""")
+                        </div>
+                        """)
 
                 st.markdown(
                     "<br>",
@@ -2590,9 +2465,8 @@ with tab3:
             st.error(f"Error processing CSV: {str(e)}")
 
 
-# ============================================================
 # FOOTER
-# ============================================================
+
 
 render_html("""
 <div class="footer">
