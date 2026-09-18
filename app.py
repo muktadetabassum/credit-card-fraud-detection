@@ -50,6 +50,10 @@ st.markdown(
     border: none !important;
 }
 
+[data-testid="stToolbar"] a[href*="github"] {
+    display: none !important;
+}
+
 [data-testid="stToolbar"] {
     background: transparent !important;
     box-shadow: none !important;
