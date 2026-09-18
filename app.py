@@ -50,9 +50,12 @@ st.markdown(
     border: none !important;
 }
 
-[data-testid="stToolbar"] a[href*="github"] {
+.stAppDeployButton {
     display: none !important;
-    visibility: hidden !important;
+}
+
+[data-testid="stAppToolbar"] {
+    display: none !important;
 }
 
 [data-testid="stToolbar"] {
