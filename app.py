@@ -48,20 +48,13 @@ st.markdown(
     display: none !important;
 }
 
-
-[data-testid="stAppToolbar"] {
+a[href*="github.com"] {
     display: none !important;
 }
-
-[data-testid="stToolbar"] {
-    display: none !important;
-}
-
 
 #MainMenu {
     visibility: hidden !important;
 }
-
 
 footer {
     visibility: hidden !important;
