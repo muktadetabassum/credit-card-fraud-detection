@@ -58,6 +58,11 @@ st.markdown(
 
 [data-testid="appCreatorAvatar"]{
     display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 #MainMenu {
